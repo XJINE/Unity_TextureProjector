@@ -2,46 +2,45 @@ Shader "Projector/TextureProjector"
 {
     Properties 
     {
-        _MainTex ("Main Texture", 2D) = "white" {}
+        _MainTex ("Texture", 2D) = "white" {}
     }
-
     Subshader 
     {
-        Tags
-        {
-            "Queue" = "Transparent"
-        }
         Pass
         {
-            ZWrite Off
-
             CGPROGRAM
 
             #pragma  vertex   vert
             #pragma  fragment frag
             #include "UnityCG.cginc"
-            
+
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv     : TEXCOORD0;
+            };
+
             struct v2f
             {
-                float4 uvTexture  : TEXCOORD0;
-                float4 pos        : SV_POSITION;
+                float4 vertex : SV_POSITION;
+                float4 uv     : TEXCOORD0;
             };
 
             sampler2D _MainTex;
             float4x4 unity_Projector;
             float4x4 unity_ProjectorClip;
             
-            v2f vert (float4 vertex : POSITION)
+            v2f vert (appdata v)
             {
                 v2f o;
-                o.pos       = UnityObjectToClipPos (vertex);
-                o.uvTexture = mul (unity_Projector, vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv     = mul(unity_Projector, v.vertex);
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
-                return tex2Dproj (_MainTex, UNITY_PROJ_COORD(i.uvTexture));
+                return tex2Dproj(_MainTex, UNITY_PROJ_COORD(i.uv));
             }
 
             ENDCG
